@@ -1,7 +1,9 @@
 % Lisp grammar using Definite Clause Grammars
 
-sexp(S) --> list(S).
-sexp(S) --> lisp_atom(S).
+read_sexp(S) --> spaces, sexp(S), spaces.
+
+sexp(S) --> list(S). 
+sexp(S) --> atom(S).
 
 list(Ns) --> lparen, spaces, nodes(Ns), spaces, rparen.
 
@@ -11,10 +13,10 @@ nodes([]) --> [].
 lparen --> [40].
 rparen --> [41].
 
-spaces --> [32].
+spaces --> [32], spaces.
 spaces --> [].
 
-lisp_atom(A) --> integer(A).
+atom(A) --> integer(A).
 
 integer(I) -->
         digit(D0),
