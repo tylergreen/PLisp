@@ -146,8 +146,8 @@ make_proc([\, Params|Body], Env, compound_proc(Params, Body, Env)).
 %%%% primitive procedures (scheme procedures written in prolog) 
 %% remember takes a single list as arg
 
-car([H|_], H).
-cdr([_|T], T).
+car([[H|_]], H).
+cdr([[_|T]], T).
 cons([X,Xs], [X|Xs]).
 list(L,L).
 
