@@ -20,6 +20,8 @@
 %% Notes remember your syntax you implemented, watch for bugs in the primitve procedures, 
 % especially the aritmetical ones
 
+[parser, utils].
+
 eval(Exp, Env, Exp, Env) :- self_eval(Exp).                            %done
 eval(Exp, Env, V, Env) :- variable(Exp), lookup_var_val(Exp, Env, V). %done
 eval(Exp, Env, V, Env) :- quoted(Exp,V).                        %done      
@@ -28,22 +30,28 @@ eval(Exp, Env, V, Env1) :- eval_defn(Exp, Env, V, Env1).        %done
 eval(Exp, Env, V, Env1) :- eval_if(Exp, Env, V, Env1).          %done
 eval(Exp, Env, V, Env)  :- make_proc(Exp, Env, V).              %done        
 eval(Exp, Env, V, Env1) :- eval_sequence(Exp, Env, V, Env1).    %done       
-eval(Exp, Env, V, Env1) :- eval_cond(Exp, Env, V, Env1).        %done             
-eval(Exp, Env, V, Env1) :- eval_app(Exp, Env, V, Env1).         %done             
-
+eval(Exp, Env, V, Env1) :- eval_cond(Exp, Env, V, Env1).        %done
+eval(Exp, Env, V, Env1) :- eval_app(Exp, Env, V, Env1).	        %done             
 %%% top level
 
 plisp :- init_env(Env), repl(Env).
 
+% haven't quite got the repl here hooked up yet
 repl(Env) :-
-	write('p-lisp> '), 
-	lisp_read(X),
-	eval(X, Env, V, Env1),
+	write('p-lisp> '),
+	lisp_read(Sexp),
+	eval(Sexp, Env, V, Env1),
 	lisp_print(V),
 	repl(Env1).
 
-lisp_read(X) :- read(X).
-lisp_print(X) :- writeln(X).
+lisp_read(Sexp) :-
+	current_input(I),
+	read_line_to_codes(I,String),
+	phrase(read_sexp(Sexp), String).
+
+lisp_print(Sexp) :-
+ 	write('result: '),
+	writeln(Sexp).
 
 %%%%% self evaluating atoms
 self_eval(nil).
@@ -102,14 +110,6 @@ apply(Proc, Args, R) :- apply_primitive_proc(Proc, Args, R).
 %% List of prim procs = [car, cdr, cons, list, append, null, plus, minus, product, foldr].
 
 apply_primitive_proc(Proc, Args, R) :- P =.. [Proc, Args, R], call(P).
-
-%%% cond 
-%(cond ((= a b) c)
-%      (else (- a d)))
-
-%[cond, [[=,a,b], c],
-%	[else, [-, a, d]]]
-
 
 eval_cond([cond|Body], Env, R, Env1) :-
 	cond_if(Body, Nested_Ifs),
@@ -209,6 +209,7 @@ define_var(Var, Val, [F|Fs], [F1|Fs]) :-
 
 extend_env(Vars, Vals, Base_Env, [F|Base_Env]) :-
 	eq_length(Vars, Vals),
+	!,
 	frame(Vars, Vals, F).
 extend_env(_,_,_,_) :- throw('incorrect number of args supplied').
 
